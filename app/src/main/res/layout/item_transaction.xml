@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvTransTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Salary" />
+
+        <TextView
+            android:id="@+id/tvTransDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2025-10-01"
+            android:textSize="12sp"
+            android:textColor="#888" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvTransAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+$3000"
+        android:textStyle="bold" />
+</LinearLayout>
