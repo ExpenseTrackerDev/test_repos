@@ -22,11 +22,23 @@ class resetActivity : AppCompatActivity() {
         val btnReset=findViewById<Button>(R.id.resetpass)
         val password = findViewById<EditText>(R.id.newpass)
         val confirmPassword = findViewById<EditText>(R.id.confirmpass)
+        val source = intent.getStringExtra("source")
+
 
         btnback.setOnClickListener {
-//            val intent = Intent(this, loginActivity::class.java)
-//            startActivity(intent)
-            finish()
+            when (source) {
+                "login" -> {
+                    val intent = Intent(this, loginActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+                "settings" -> {
+                    val intent = Intent(this, settingsActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+                else -> finish() // fallback
+            }
         }
         btnReset.setOnClickListener {
             val pass = password.text.toString()
@@ -45,8 +57,11 @@ class resetActivity : AppCompatActivity() {
             // If validation passes, go to verification page
             val intent = Intent(this, VerificationActivity::class.java)
             intent.putExtra("password", pass)
+            intent.putExtra("source", "reset")
             startActivity(intent)
             finish()
+
+
         }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

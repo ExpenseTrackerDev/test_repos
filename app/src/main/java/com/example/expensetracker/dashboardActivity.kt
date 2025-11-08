@@ -44,9 +44,9 @@ class dashboardActivity : AppCompatActivity() {
         }
 
         // Notification Icon Click
-//        notificationIcon.setOnClickListener {
-//            startActivity(Intent(this, NotificationActivity::class.java))
-//        }
+        notificationIcon.setOnClickListener {
+            startActivity(Intent(this, NotificationActivity::class.java))
+        }
 
         // Bottom Buttons
         findViewById<Button>(R.id.btnBottomIncome).setOnClickListener {
@@ -65,7 +65,7 @@ class dashboardActivity : AppCompatActivity() {
                 R.id.nav_income -> startActivity(Intent(this, IncomeActivity::class.java))
                 R.id.nav_expense -> startActivity(Intent(this, ExpenseActivity::class.java))
                 R.id.nav_budget -> startActivity(Intent(this, BudgetActivity::class.java))
-              //  R.id.nav_report -> startActivity(Intent(this, ReportActivity::class.java))
+                R.id.nav_reports -> startActivity(Intent(this, ReportActivity::class.java))
                 R.id.nav_settings -> startActivity(Intent(this, settingsActivity::class.java))
                 R.id.nav_logout -> finish()
             }

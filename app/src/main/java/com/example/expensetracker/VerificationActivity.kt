@@ -22,10 +22,24 @@ class VerificationActivity : AppCompatActivity() {
         val otp = findViewById<EditText>(R.id.otp)
         val btnBack = findViewById<ImageView>(R.id.back_btn)
         val btnVerify = findViewById<Button>(R.id.verify)
+        val source = intent.getStringExtra("source") // "reset" or "create"
+
 
         // Back button
         btnBack.setOnClickListener {
-            finish() // simply go back to previous screen
+            when (source) {
+                "reset" -> {
+                    val intent = Intent(this, resetActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+                "create" -> {
+                    val intent = Intent(this, CreateActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+                else -> finish() // fallback
+            }
         }
 
         // Verify button

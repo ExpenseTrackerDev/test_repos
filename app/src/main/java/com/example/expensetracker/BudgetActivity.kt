@@ -1,10 +1,13 @@
 package com.example.expensetracker
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class BudgetActivity : AppCompatActivity() {
 
@@ -12,6 +15,7 @@ class BudgetActivity : AppCompatActivity() {
     private lateinit var btnAddBudget: Button
     private lateinit var btnEditBudget: Button
     private lateinit var tvCurrentBudget: TextView
+    private lateinit var btnBack: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,6 +25,13 @@ class BudgetActivity : AppCompatActivity() {
         btnAddBudget = findViewById(R.id.btnAddBudget)
         btnEditBudget = findViewById(R.id.btnEditBudget)
         tvCurrentBudget = findViewById(R.id.tvCurrentBudget)
+        btnBack = findViewById(R.id.back_btn)
+
+        btnBack.setOnClickListener {
+            val intent = Intent(this, dashboardActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
 
         btnAddBudget.setOnClickListener { showAddBudgetDialog() }
 
@@ -28,6 +39,11 @@ class BudgetActivity : AppCompatActivity() {
         addBudgetItem("January 2025", 70, 2000)
         addBudgetItem("February 2025", 45, 1800)
         addBudgetItem("March 2025", 90, 2500)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
     }
 
     private fun addBudgetItem(month: String, usedPercent: Int, totalBudget: Int) {
