@@ -43,6 +43,7 @@ class loginActivity : AppCompatActivity() {
 
         btnForget.setOnClickListener {
             val intent = Intent(this, resetActivity::class.java)
+            intent.putExtra("source","login")
             startActivity(intent)
             finish()
         }

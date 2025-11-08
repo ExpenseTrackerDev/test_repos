@@ -21,7 +21,7 @@ class CreateActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_create)
 
-        val backCreate = findViewById<ImageView>(R.id.back_create)
+        val backCreate = findViewById<ImageView>(R.id.back_btn)
         val createAccountBtn = findViewById<Button>(R.id.createacnt)
         val signinBtn = findViewById<TextView>(R.id.signin)
         val username = findViewById<EditText>(R.id.chooseusername)
@@ -65,6 +65,7 @@ class CreateActivity : AppCompatActivity() {
             intent.putExtra("email", mail)
             intent.putExtra("phone", phn)
             intent.putExtra("password", pass)
+            intent.putExtra("source", "create")
             startActivity(intent)
             finish()
         }

@@ -31,7 +31,9 @@ class settingsActivity : AppCompatActivity() {
 
         // Back button click
         btnBack.setOnClickListener {
-            finish() // simply return to dashboard
+            val intent = Intent(this, dashboardActivity::class.java)
+            startActivity(intent)
+            finish()
         }
 
         // Update profile click
@@ -44,6 +46,7 @@ class settingsActivity : AppCompatActivity() {
         // Change password click
         btnChangePass.setOnClickListener {
             val intent = Intent(this, resetActivity::class.java)
+            intent.putExtra("source","settings")
             startActivity(intent)
             finish()
         }

@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ExpenseTracker">
         <activity
+            android:name=".NotificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ReportActivity"
+            android:exported="false" />
+        <activity
             android:name=".ExpenseActivity"
             android:exported="false" />
         <activity
@@ -23,7 +29,6 @@
         <activity
             android:name=".VerificationActivity"
             android:exported="false" />
-
         <activity
             android:name=".UpdateProfileActivity"
             android:exported="false" />
@@ -33,7 +38,6 @@
         <activity
             android:name=".CreateActivity"
             android:exported="false" />
-
         <activity
             android:name=".resetActivity"
             android:exported="false" /> <!-- Dashboard Screen -->

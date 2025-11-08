@@ -1,11 +1,15 @@
 package com.example.expensetracker
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -20,16 +24,31 @@ class IncomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_income)
 
-        setSupportActionBar(findViewById(R.id.toolbarIncome))
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+//        setSupportActionBar(findViewById(R.id.topBar))
+//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        val btnBack = findViewById<ImageView>(R.id.back_btn)
+
+        btnBack.setOnClickListener {
+            val intent = Intent(this, dashboardActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
 
         recyclerIncome = findViewById(R.id.recyclerIncome)
         recyclerIncome.layoutManager = LinearLayoutManager(this)
         incomeAdapter = IncomeAdapter(incomeList, ::editIncome, ::deleteIncome)
         recyclerIncome.adapter = incomeAdapter
 
+
         findViewById<FloatingActionButton>(R.id.btnAddIncome).setOnClickListener {
             showAddIncomeDialog()
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
         }
     }
 
