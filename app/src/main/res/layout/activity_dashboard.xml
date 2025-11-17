@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
 
-        <!-- WHITE TOP TOOLBAR -->
+        <!-- TOP TOOLBAR -->
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -23,10 +23,11 @@
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/purple_500"
-                app:title=""
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+                android:layout_height="56dp"
+                android:background="@color/purple_500">
+<!--                app:title=""-->
+<!--                app:popupTheme="@style/ThemeOverlay.AppCompat.Light">-->
+
 
                 <!-- Left menu icon -->
                 <ImageView
@@ -43,7 +44,7 @@
                     android:id="@+id/username_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hello, User"
+                    android:text=""
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"
@@ -59,6 +60,7 @@
                     android:layout_gravity="end"
                     android:padding="6dp" />
             </androidx.appcompat.widget.Toolbar>
+
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- SCROLLABLE BODY -->
@@ -76,12 +78,43 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Cards row -->
+                <!-- MONTH-YEAR SELECTOR -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:weightSum="3">
+                    android:gravity="center_vertical"
+                    android:padding="8dp"
+                    android:background="#EFEFEF"
+                    android:elevation="2dp">
+
+                    <TextView
+                        android:id="@+id/tvSelectedMonth"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="November 2025"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/purple_500"
+                        android:paddingStart="8dp" />
+
+                    <ImageView
+                        android:id="@+id/btnSelectMonth"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="@color/purple_500"
+                        android:padding="6dp" />
+                </LinearLayout>
+
+                <!-- CARDS ROW -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3"
+                    android:layout_marginTop="12dp">
 
                     <!-- Balance card -->
                     <androidx.cardview.widget.CardView
@@ -182,7 +215,20 @@
                     </androidx.cardview.widget.CardView>
                 </LinearLayout>
 
-                <!-- Chart title + sort -->
+                <!-- ADVICE MESSAGE -->
+                <TextView
+                    android:id="@+id/tvAdvice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:padding="10dp"
+                    android:background="#FFF8E1"
+                    android:text="Great savings last month! Keep it up 💰"
+                    android:textColor="#333"
+                    android:textSize="15sp"
+                    android:elevation="2dp" />
+
+                <!-- CHART TITLE -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -191,43 +237,21 @@
                     android:layout_marginTop="16dp">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="Income vs Expense"
                         android:textSize="16sp"
                         android:textStyle="bold" />
-
-                    <RadioGroup
-                        android:id="@+id/sortGroup"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <RadioButton
-                            android:id="@+id/rbByDate"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="By Date"
-                            android:checked="true" />
-
-                        <RadioButton
-                            android:id="@+id/rbByMonth"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="By Month" />
-                    </RadioGroup>
                 </LinearLayout>
 
-                <!-- Placeholder for line chart -->
-                <FrameLayout
-                    android:id="@+id/chartContainer"
+                <!-- CHART (LineChart) -->
+                <com.example.expensetracker.SimpleLineChartView
+                    android:id="@+id/lineChart"
                     android:layout_width="match_parent"
-                    android:layout_height="220dp"
-                    android:layout_marginTop="8dp"
-                    android:background="#F5F5F5" />
+                    android:layout_height="200dp" />
 
-                <!-- Recent transactions header -->
+
+                <!-- RECENT TRANSACTIONS HEADER -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -236,7 +260,7 @@
                     android:textStyle="bold"
                     android:layout_marginTop="16dp" />
 
-                <!-- Recent transactions list -->
+                <!-- RECENT TRANSACTIONS LIST -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerRecent"
                     android:layout_width="match_parent"

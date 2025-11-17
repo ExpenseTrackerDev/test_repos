@@ -17,7 +17,9 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
     }
+
 }
+
 
 rootProject.name = "Expense Tracker"
 include(":app")
