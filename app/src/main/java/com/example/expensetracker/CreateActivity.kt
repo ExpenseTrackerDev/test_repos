@@ -42,6 +42,35 @@ class CreateActivity : AppCompatActivity() {
             finish()
         }
 
+
+
+//        createAccountBtn.setOnClickListener {
+//            val user = username.text.toString().trim()
+//            val mail = email.text.toString().trim()
+//            val phn = phone.text.toString().trim()
+//            val pass = password.text.toString()
+//            val confirmPass = confirmPassword.text.toString()
+//
+//            if (user.isEmpty() || mail.isEmpty() || phn.isEmpty() || pass.isEmpty() || confirmPass.isEmpty()) {
+//                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+//                return@setOnClickListener
+//            }
+//
+//            if (pass != confirmPass) {
+//                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+//                return@setOnClickListener
+//            }
+//
+//            // If validation passes, go to verification page
+//            val intent = Intent(this, VerificationActivity::class.java)
+//            intent.putExtra("username", user)
+//            intent.putExtra("email", mail)
+//            intent.putExtra("phone", phn)
+//            intent.putExtra("password", pass)
+//            intent.putExtra("source", "create")
+//            startActivity(intent)
+//            finish()
+//        }
         createAccountBtn.setOnClickListener {
             val user = username.text.toString().trim()
             val mail = email.text.toString().trim()
@@ -59,16 +88,29 @@ class CreateActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // If validation passes, go to verification page
-            val intent = Intent(this, VerificationActivity::class.java)
-            intent.putExtra("username", user)
-            intent.putExtra("email", mail)
-            intent.putExtra("phone", phn)
-            intent.putExtra("password", pass)
-            intent.putExtra("source", "create")
-            startActivity(intent)
-            finish()
+            // Call backend
+            val request = RegisterRequest(user, mail, phn, pass, confirmPass)
+            RetrofitClient.instance.registerUser(request).enqueue(object : retrofit2.Callback<ApiResponse> {
+                override fun onResponse(call: retrofit2.Call<ApiResponse>, response: retrofit2.Response<ApiResponse>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@CreateActivity, response.body()?.message ?: "OTP sent", Toast.LENGTH_SHORT).show()
+                        // Move to VerificationActivity
+                        val intent = Intent(this@CreateActivity, VerificationActivity::class.java)
+                        intent.putExtra("email", mail)
+                        startActivity(intent)
+                    } else {
+                        Toast.makeText(this@CreateActivity, "Registration failed", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: retrofit2.Call<ApiResponse>, t: Throwable) {
+                    Toast.makeText(this@CreateActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
         }
+
+
+
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

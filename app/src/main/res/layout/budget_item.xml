@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/shape_bg"
+    android:background="@color/cardview_light_background"
     android:padding="16dp"
     android:layout_marginTop="8dp">
 
@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:progress="70"
+        android:progress="0"
         android:progressTint="#5B34EB"
         style="?android:attr/progressBarStyleHorizontal" />
 
@@ -29,7 +29,7 @@
         android:id="@+id/tvUsage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Used: 70% of $2,000"
+        android:text="Used: 0% of $0"
         android:textColor="#555"
         android:textSize="14sp"
         android:layout_marginTop="4dp" />

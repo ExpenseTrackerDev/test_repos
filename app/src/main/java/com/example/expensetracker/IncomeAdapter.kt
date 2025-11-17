@@ -45,6 +45,12 @@ class IncomeAdapter(
         holder.btnEdit.setOnClickListener { onEdit(position) }
         holder.btnDelete.setOnClickListener { onDelete(position) }
     }
+    fun updateList(newList: List<Income>) {
+        incomeList.clear()
+        incomeList.addAll(newList)
+        notifyDataSetChanged()
+    }
+
 
     override fun getItemCount(): Int = incomeList.size
 }

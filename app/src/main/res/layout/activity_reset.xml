@@ -8,6 +8,47 @@
     tools:context=".resetActivity">
 
 
+    <EditText
+        android:id="@+id/newpass"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/inputbg"
+        android:ems="10"
+        android:hint="Enter new password"
+        android:inputType="text"
+        android:minHeight="48dp"
+        android:paddingLeft="20dp"
+        android:paddingTop="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="10dp"
+        android:textColor="@color/black"
+        android:textColorHighlight="@color/black"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="@+id/textView14"
+        app:layout_constraintHorizontal_bias="0.666"
+        app:layout_constraintStart_toStartOf="@+id/textView14"
+        app:layout_constraintTop_toBottomOf="@+id/textView14" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:paddingLeft="20dp"
+        android:paddingTop="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="10dp"
+        android:text="Email"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topBar" />
+
     <RelativeLayout
         android:id="@+id/topBar"
         android:layout_width="0dp"
@@ -46,9 +87,6 @@
         android:id="@+id/textView14"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         android:paddingLeft="20dp"
         android:paddingTop="10dp"
         android:paddingRight="10dp"
@@ -56,15 +94,14 @@
         android:text="New Password"
         android:textColor="@color/black"
         android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topBar" />
+        app:layout_constraintEnd_toEndOf="@+id/emailReset"
+        app:layout_constraintStart_toStartOf="@+id/emailReset"
+        app:layout_constraintTop_toBottomOf="@+id/emailReset" />
 
     <TextView
         android:id="@+id/textView15"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:paddingLeft="20dp"
         android:paddingTop="10dp"
         android:paddingRight="10dp"
@@ -77,14 +114,14 @@
         app:layout_constraintTop_toBottomOf="@+id/newpass" />
 
     <EditText
-        android:id="@+id/newpass"
+        android:id="@+id/emailReset"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
         android:background="@drawable/inputbg"
         android:ems="10"
-        android:hint="Enter new password"
+        android:hint="Enter your email"
         android:inputType="text"
+        android:minHeight="48dp"
         android:paddingLeft="20dp"
         android:paddingTop="10dp"
         android:paddingRight="10dp"
@@ -92,9 +129,9 @@
         android:textColor="@color/black"
         android:textColorHighlight="@color/black"
         android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="@+id/textView14"
-        app:layout_constraintStart_toStartOf="@+id/textView14"
-        app:layout_constraintTop_toBottomOf="@+id/textView14" />
+        app:layout_constraintEnd_toEndOf="@+id/textView"
+        app:layout_constraintStart_toStartOf="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <EditText
         android:id="@+id/confirmpass"
@@ -117,12 +154,13 @@
         android:id="@+id/resetpass"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:background="@drawable/btnbg"
         android:text="Reset Password"
         android:textColor="@color/white"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="@+id/confirmpass"
+        app:layout_constraintHorizontal_bias="0.666"
         app:layout_constraintStart_toStartOf="@+id/confirmpass"
         app:layout_constraintTop_toBottomOf="@+id/confirmpass" />
 
