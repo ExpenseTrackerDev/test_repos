@@ -45,7 +45,7 @@ class loginActivity : AppCompatActivity() {
 //                ) {
 //                    if (response.isSuccessful) {
 //                        Toast.makeText(this@loginActivity, "Login Successful", Toast.LENGTH_SHORT).show()
-//                        startActivity(Intent(this@loginActivity, dashboardActivity::class.java))
+//                        startActivity(Intent(this@loginActivity, DashboardActivity::class.java))
 //                        finish()
 //                    } else {
 //                        Toast.makeText(this@loginActivity, "Invalid Email/Username or Password", Toast.LENGTH_SHORT).show()
@@ -84,7 +84,7 @@ class loginActivity : AppCompatActivity() {
                         }
 
                         // Start dashboard
-                        val intent = Intent(this@loginActivity, dashboardActivity::class.java)
+                        val intent = Intent(this@loginActivity, DashboardActivity::class.java)
                         startActivity(intent)
                         finish()
 

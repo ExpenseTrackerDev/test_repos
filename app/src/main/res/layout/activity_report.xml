@@ -74,7 +74,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="12dp"
-        android:text="Download CSV Report"
+        android:text="Download Report in PDF"
         android:background="@drawable/btnbg"
         android:textColor="@android:color/white"/>
 </LinearLayout>

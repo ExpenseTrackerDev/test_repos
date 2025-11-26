@@ -7,18 +7,13 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-data class Income(
-    var category: String,
-    var amount: Double,
-    var date: String,
-    var description: String
-)
-
 class IncomeAdapter(
     private val incomeList: MutableList<Income>,
     private val onEdit: (Int) -> Unit,
     private val onDelete: (Int) -> Unit
 ) : RecyclerView.Adapter<IncomeAdapter.IncomeViewHolder>() {
+
+    var showButtons = true
 
     inner class IncomeViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvCategory: TextView = view.findViewById(R.id.tvCategory)
@@ -42,15 +37,12 @@ class IncomeAdapter(
         holder.tvDate.text = "Date: ${income.date}"
         holder.tvDescription.text = "Description: ${income.description}"
 
+        holder.btnEdit.visibility = if (showButtons) View.VISIBLE else View.GONE
+        holder.btnDelete.visibility = if (showButtons) View.VISIBLE else View.GONE
+
         holder.btnEdit.setOnClickListener { onEdit(position) }
         holder.btnDelete.setOnClickListener { onDelete(position) }
     }
-    fun updateList(newList: List<Income>) {
-        incomeList.clear()
-        incomeList.addAll(newList)
-        notifyDataSetChanged()
-    }
-
 
     override fun getItemCount(): Int = incomeList.size
 }

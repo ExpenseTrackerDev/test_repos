@@ -8,7 +8,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#F8F9FA"
-    tools:context=".ExpenseActivity">
+    tools:context=".ExpenseActivity"
+    android:fitsSystemWindows="true">
 
     <!-- Toolbar -->
     <RelativeLayout
