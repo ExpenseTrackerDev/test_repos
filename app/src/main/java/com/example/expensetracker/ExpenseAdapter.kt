@@ -7,18 +7,20 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-data class Expense(
-    var category: String,
-    var amount: Double,
-    var date: String,
-    var description: String
-)
+//data class Expense(
+//    var category: String,
+//    var amount: Double,
+//    var date: String,
+//    var description: String
+//)
 
 class ExpenseAdapter(
     private val expenseList: MutableList<Expense>,
     private val onEdit: (Int) -> Unit,
     private val onDelete: (Int) -> Unit
 ) : RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
+
+    var showButtons = true
 
     inner class ExpenseViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvCategory: TextView = view.findViewById(R.id.tvCategory)
@@ -41,6 +43,9 @@ class ExpenseAdapter(
         holder.tvAmount.text = "Amount: ${expense.amount}"
         holder.tvDate.text = "Date: ${expense.date}"
         holder.tvDescription.text = "Description: ${expense.description}"
+
+        holder.btnEdit.visibility = if (showButtons) View.VISIBLE else View.GONE
+        holder.btnDelete.visibility = if (showButtons) View.VISIBLE else View.GONE
 
         holder.btnEdit.setOnClickListener { onEdit(position) }
         holder.btnDelete.setOnClickListener { onDelete(position) }

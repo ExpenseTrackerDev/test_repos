@@ -7,14 +7,29 @@
     android:padding="16dp"
     android:layout_marginTop="8dp">
 
-    <TextView
-        android:id="@+id/tvMonth"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="January 2025"
-        android:textColor="#000"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvMonth"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="January 2025"
+            android:textColor="#000"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnEditBudgetItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit"
+            android:visibility="gone" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressBudget"
@@ -33,5 +48,4 @@
         android:textColor="#555"
         android:textSize="14sp"
         android:layout_marginTop="4dp" />
-
 </LinearLayout>

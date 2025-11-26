@@ -44,7 +44,7 @@
             android:name=".resetActivity"
             android:exported="false" /> <!-- Dashboard Screen -->
         <activity
-            android:name=".dashboardActivity"
+            android:name=".DashboardActivity"
             android:exported="false" /> <!-- Login Screen -->
         <activity
             android:name=".loginActivity"

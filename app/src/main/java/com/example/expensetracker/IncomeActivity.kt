@@ -6,38 +6,55 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
+
+data class Income(
+    val id: String?,
+    var category: String,
+    var amount: Double,
+    var date: String,
+    var description: String
+)
 
 class IncomeActivity : AppCompatActivity() {
 
     private lateinit var recyclerIncome: RecyclerView
     private lateinit var incomeAdapter: IncomeAdapter
     private val incomeList = mutableListOf<Income>()
-    private var filteredList = mutableListOf<Income>()
+    private val filteredList = mutableListOf<Income>()
 
     private lateinit var spinnerMonth: Spinner
     private lateinit var spinnerYear: Spinner
     private lateinit var etSearchCategory: EditText
     private lateinit var etFromDate: EditText
-    private lateinit var etToDate: EditText
+
+    private lateinit var userId: String
+
+    private fun formatDate(rawDate: String): String {
+        return try {
+            rawDate.substring(0, 10)
+        } catch (e: Exception) {
+            rawDate
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_income)
 
-        val btnBack = findViewById<ImageView>(R.id.back_btn)
-        btnBack.setOnClickListener {
-            startActivity(Intent(this, dashboardActivity::class.java))
-            finish()
-        }
+        val prefs = getSharedPreferences("userPrefs", MODE_PRIVATE)
+        userId = prefs.getString("userId", "") ?: ""
 
         recyclerIncome = findViewById(R.id.recyclerIncome)
         recyclerIncome.layoutManager = LinearLayoutManager(this)
@@ -48,77 +65,84 @@ class IncomeActivity : AppCompatActivity() {
         spinnerYear = findViewById(R.id.spinnerYear)
         etSearchCategory = findViewById(R.id.etSearchCategory)
         etFromDate = findViewById(R.id.etFromDate)
-//        etToDate = findViewById(R.id.etToDate)
-        val btnClearFilter = findViewById<Button>(R.id.btnClearFilter)
 
-//        btnClearFilter.setOnClickListener {
-//            // Reset all filter inputs
-//            spinnerMonth.setSelection(0)   // assumes first item is "All" or blank
-//            spinnerYear.setSelection(0)
-//            etSearchCategory.text.clear()
-//            etFromDate.text.clear()
-//            // etToDate.text.clear() // if you are using a To Date field
-//            filterIncomes()
-//
-//            // Reload the full income list
-////            incomeAdapter.updateList(fullIncomeList) // fullIncomeList = original unfiltered data
-//        }
-        btnClearFilter.setOnClickListener {
-            // Clear all filter inputs
-            etFromDate.text.clear()
-            etSearchCategory.text.clear()
-
-            // Reload the full list for the current month
-            filteredList.clear()
-
-            val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val today = Calendar.getInstance()
-
-            for (income in incomeList) {
-                val date = try { format.parse(income.date.trim()) } catch (e: Exception) { null } ?: continue
-                val cal = Calendar.getInstance()
-                cal.time = date
-
-                // Only include incomes from current month and year
-                if (cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                    cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
-                    filteredList.add(income)
-                }
-            }
-
-            incomeAdapter.notifyDataSetChanged()
+        findViewById<ImageView>(R.id.back_btn).setOnClickListener {
+            startActivity(Intent(this, DashboardActivity::class.java))
+            finish()
         }
 
-
-
+        findViewById<Button>(R.id.btnClearFilter).setOnClickListener {
+            etFromDate.text.clear()
+            etSearchCategory.text.clear()
+            spinnerMonth.setSelection(Calendar.getInstance().get(Calendar.MONTH))
+            spinnerYear.setSelection(
+                (2023..Calendar.getInstance().get(Calendar.YEAR))
+                    .indexOf(Calendar.getInstance().get(Calendar.YEAR))
+            )
+            filterIncomes()
+        }
 
         findViewById<FloatingActionButton>(R.id.btnAddIncome).setOnClickListener {
             showAddIncomeDialog()
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        // Initialize spinners and filters
         setupMonthYearSpinners()
         setupCategorySearch()
-        setupDatePickers()
-
-        // Load sample data
-        loadSampleIncomes()
+        setupDatePicker()
     }
 
-    private fun loadSampleIncomes() {
-        val calendar = Calendar.getInstance()
-        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        incomeList.add(Income("Salary", 25000.0, format.format(calendar.time), "October Salary"))
-        incomeList.add(Income("Freelance", 8000.0, format.format(calendar.time), "Project Payment"))
+    override fun onResume() {
+        super.onResume()
+        loadIncomesFromBackend()
+    }
 
-        // Initially show current month incomes
-        filterIncomes()
+    private fun toggleActionButtons() {
+        val selectedMonth = spinnerMonth.selectedItem.toString().toInt()
+        val selectedYear = spinnerYear.selectedItem.toString().toInt()
+
+        val calendar = Calendar.getInstance()
+        val currentMonth = calendar.get(Calendar.MONTH) + 1
+        val currentYear = calendar.get(Calendar.YEAR)
+
+        val isCurrentMonth = (selectedMonth == currentMonth && selectedYear == currentYear)
+
+        findViewById<FloatingActionButton>(R.id.btnAddIncome).visibility =
+            if (isCurrentMonth) View.VISIBLE else View.GONE
+
+        incomeAdapter.showButtons = isCurrentMonth
+        incomeAdapter.notifyDataSetChanged()
+    }
+
+    private fun loadIncomesFromBackend() {
+        RetrofitClient.instance.getIncomes(userId)
+            .enqueue(object : Callback<List<IncomeResponse>> {
+                override fun onResponse(
+                    call: Call<List<IncomeResponse>>,
+                    response: Response<List<IncomeResponse>>
+                ) {
+                    if (response.isSuccessful && response.body() != null) {
+                        incomeList.clear()
+                        incomeList.addAll(response.body()!!.map { inc ->
+                            Income(
+                                id = inc.id,
+                                category = inc.category,
+                                amount = inc.amount,
+                                date = inc.date.substringBefore("T"),
+                                description = inc.description
+                            )
+                        })
+                        filterIncomes()
+                    } else {
+                        Log.e("IncomeActivity", "API Error: ${response.code()} ${response.errorBody()?.string()}")
+                        Toast.makeText(this@IncomeActivity, "Failed to load incomes", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<List<IncomeResponse>>, t: Throwable) {
+                    Log.e("IncomeActivity", "API Failure", t)
+                    Toast.makeText(this@IncomeActivity, "Failed to load incomes", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 
     private fun setupMonthYearSpinners() {
@@ -133,11 +157,13 @@ class IncomeActivity : AppCompatActivity() {
         spinnerYear.setSelection(years.indexOf(calendar.get(Calendar.YEAR).toString()))
 
         val listener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 filterIncomes()
+                toggleActionButtons()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+
         spinnerMonth.onItemSelectedListener = listener
         spinnerYear.onItemSelectedListener = listener
     }
@@ -150,57 +176,23 @@ class IncomeActivity : AppCompatActivity() {
         })
     }
 
-    private fun setupDatePickers() {
+    private fun setupDatePicker() {
         val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-
-        val listener = { editText: EditText ->
+        etFromDate.setOnClickListener {
             val calendar = Calendar.getInstance()
-            val datePicker = DatePickerDialog(this,
+            DatePickerDialog(this,
                 { _, year, month, dayOfMonth ->
                     val c = Calendar.getInstance()
                     c.set(year, month, dayOfMonth)
-                    editText.setText(format.format(c.time))
+                    etFromDate.setText(format.format(c.time))
                     filterIncomes()
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
-            )
-            datePicker.show()
+            ).show()
         }
-
-        etFromDate.setOnClickListener { listener(etFromDate) }
-//        etToDate.setOnClickListener { listener(etToDate) }
     }
-
-//    private fun filterIncomes() {
-//        val selectedMonth = spinnerMonth.selectedItem.toString().toInt()
-//        val selectedYear = spinnerYear.selectedItem.toString().toInt()
-//        val categoryQuery = etSearchCategory.text.toString().lowercase()
-//        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-//
-//        filteredList.clear()
-//        for (income in incomeList) {
-//            val date = format.parse(income.date)
-//            val cal = Calendar.getInstance()
-//            cal.time = date!!
-//
-//            if (cal.get(Calendar.MONTH) + 1 == selectedMonth &&
-//                cal.get(Calendar.YEAR) == selectedYear &&
-//                income.category.lowercase().contains(categoryQuery)) {
-//
-//                // Filter by date range if specified
-//                val fromDate = if (etFromDate.text.isNotEmpty()) format.parse(etFromDate.text.toString()) else null
-////                val toDate = if (etToDate.text.isNotEmpty()) format.parse(etToDate.text.toString()) else null
-//
-//                if ((fromDate == null || !date.before(fromDate))) {
-//                    filteredList.add(income)
-//                }
-//            }
-//        }
-//        incomeAdapter.notifyDataSetChanged()
-//    }
-
 
     private fun filterIncomes() {
         val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -209,31 +201,24 @@ class IncomeActivity : AppCompatActivity() {
         } else null
 
         val categoryQuery = etSearchCategory.text.toString().trim().lowercase()
+        val selectedMonth = spinnerMonth.selectedItem.toString().toInt()
+        val selectedYear = spinnerYear.selectedItem.toString().toInt()
 
         filteredList.clear()
-
         for (income in incomeList) {
             val incomeDate = try { format.parse(income.date.trim()) } catch (e: Exception) { null } ?: continue
-            val incomeCategory = income.category.trim().lowercase()
+            val matchesCategory = categoryQuery.isEmpty() || income.category.lowercase().contains(categoryQuery)
+            val matchesDate = fromDate == null || incomeDate.time == fromDate.time
+            val cal = Calendar.getInstance()
+            cal.time = incomeDate
+            val matchesMonthYear = cal.get(Calendar.MONTH) + 1 == selectedMonth && cal.get(Calendar.YEAR) == selectedYear
 
-            // Check if it matches category filter
-            val matchesCategory = categoryQuery.isEmpty() || incomeCategory.contains(categoryQuery)
-
-            // Check if it matches exact From Date
-            val matchesDate = fromDate == null || incomeDate == fromDate
-
-            if (matchesCategory && matchesDate) {
+            if (matchesCategory && matchesDate && matchesMonthYear) {
                 filteredList.add(income)
             }
         }
-
         incomeAdapter.notifyDataSetChanged()
     }
-
-
-
-
-
 
     private fun showAddIncomeDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_income, null)
@@ -242,33 +227,52 @@ class IncomeActivity : AppCompatActivity() {
         val etDate = dialogView.findViewById<EditText>(R.id.etIncomeDate)
         val etDescription = dialogView.findViewById<EditText>(R.id.etIncomeDescription)
 
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         etDate.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            val datePicker = DatePickerDialog(this,
+            val cal = Calendar.getInstance()
+            DatePickerDialog(this,
                 { _, year, month, dayOfMonth ->
                     val c = Calendar.getInstance()
                     c.set(year, month, dayOfMonth)
-                    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                     etDate.setText(format.format(c.time))
                 },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            )
-            datePicker.show()
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+            ).show()
         }
 
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
 
         dialogView.findViewById<Button>(R.id.btnSaveIncome).setOnClickListener {
-            val amount = etAmount.text.toString().toDoubleOrNull() ?: 0.0
-            val category = etCategory.text.toString()
-            val date = etDate.text.toString()
-            val description = etDescription.text.toString()
+            val amount = etAmount.text.toString().toDoubleOrNull()
+            val category = etCategory.text.toString().trim()
+            val date = etDate.text.toString().trim()
+            val description = etDescription.text.toString().trim()
 
-            incomeList.add(Income(category, amount, date, description))
-            filterIncomes()
-            dialog.dismiss()
+            if (amount == null || amount <= 0 || category.isEmpty() || date.isEmpty()) {
+                Toast.makeText(this, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            RetrofitClient.instance.addIncome(userId, IncomeRequest(category, amount, date, description))
+                .enqueue(object : Callback<IncomeResponse> {
+                    override fun onResponse(call: Call<IncomeResponse>, response: Response<IncomeResponse>) {
+                        if (response.isSuccessful && response.body() != null) {
+                            Toast.makeText(this@IncomeActivity, "Income added", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                            loadIncomesFromBackend()
+                        } else {
+                            Log.e("IncomeActivity", "Add Income Error: ${response.code()} ${response.errorBody()?.string()}")
+                            Toast.makeText(this@IncomeActivity, "Failed to add income", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<IncomeResponse>, t: Throwable) {
+                        Log.e("IncomeActivity", "Add Income Failure", t)
+                        Toast.makeText(this@IncomeActivity, "Failed to add income", Toast.LENGTH_SHORT).show()
+                    }
+                })
         }
 
         dialog.show()
@@ -276,6 +280,7 @@ class IncomeActivity : AppCompatActivity() {
 
     private fun editIncome(position: Int) {
         val income = filteredList[position]
+
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_income, null)
         val etAmount = dialogView.findViewById<EditText>(R.id.etIncomeAmount)
         val etCategory = dialogView.findViewById<EditText>(R.id.etIncomeCategory)
@@ -287,52 +292,103 @@ class IncomeActivity : AppCompatActivity() {
         etDate.setText(income.date)
         etDescription.setText(income.description)
 
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         etDate.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            val datePicker = DatePickerDialog(this,
+            val cal = Calendar.getInstance()
+            DatePickerDialog(this,
                 { _, year, month, dayOfMonth ->
                     val c = Calendar.getInstance()
                     c.set(year, month, dayOfMonth)
-                    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                     etDate.setText(format.format(c.time))
                 },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            )
-            datePicker.show()
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+            ).show()
         }
 
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+
         dialogView.findViewById<Button>(R.id.btnSaveIncome).setOnClickListener {
-            income.amount = etAmount.text.toString().toDoubleOrNull() ?: 0.0
-            income.category = etCategory.text.toString()
-            income.date = etDate.text.toString()
-            income.description = etDescription.text.toString()
-            filterIncomes()
-            dialog.dismiss()
+            val amount = etAmount.text.toString().toDoubleOrNull()
+            val category = etCategory.text.toString().trim()
+            val date = etDate.text.toString().trim()
+            val description = etDescription.text.toString().trim()
+
+            if (amount == null || amount <= 0 || category.isEmpty() || date.isEmpty()) {
+                Toast.makeText(this, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val incomeId = income.id ?: run {
+                Toast.makeText(this, "Income ID missing", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            RetrofitClient.instance.editIncome(userId, incomeId, IncomeRequest(category, amount, date, description))
+                .enqueue(object : Callback<IncomeResponse> {
+                    override fun onResponse(call: Call<IncomeResponse>, response: Response<IncomeResponse>) {
+                        if (response.isSuccessful && response.body() != null) {
+                            val updated = response.body()!!
+                            income.category = updated.category
+                            income.amount = updated.amount
+                            income.date = updated.date
+                            income.description = updated.description
+
+                            filterIncomes()
+                            dialog.dismiss()
+                            Toast.makeText(this@IncomeActivity, "Income updated", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Log.e("IncomeEdit", "Error code=${response.code()}, err=${response.errorBody()?.string()}")
+                            Toast.makeText(this@IncomeActivity, "Unable to update income", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<IncomeResponse>, t: Throwable) {
+                        Log.e("IncomeEdit", "Network failure: ${t.message}", t)
+                        Toast.makeText(this@IncomeActivity, "Failed to update income", Toast.LENGTH_SHORT).show()
+                    }
+                })
         }
+
         dialog.show()
     }
 
     private fun deleteIncome(position: Int) {
         val income = filteredList[position]
 
-        // Create confirmation dialog
         AlertDialog.Builder(this)
             .setTitle("Delete Income")
             .setMessage("Are you sure you want to delete this income?")
             .setPositiveButton("OK") { dialog, _ ->
-                // Delete income if OK is pressed
-                incomeList.remove(income)
-                filterIncomes()
+                val incomeId = income.id
+                if (incomeId == null) {
+                    Toast.makeText(this, "Income ID missing", Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                    return@setPositiveButton
+                }
+
+                RetrofitClient.instance.deleteIncome(userId, incomeId)
+                    .enqueue(object : Callback<ApiResponse> {
+                        override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
+                            if (response.isSuccessful) {
+                                Toast.makeText(this@IncomeActivity, "Income deleted", Toast.LENGTH_SHORT).show()
+                                loadIncomesFromBackend()
+                            } else {
+                                Log.e("IncomeDelete", "Delete failed code=${response.code()}, err=${response.errorBody()?.string()}")
+                                Toast.makeText(this@IncomeActivity, "Unable to delete income", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                            Log.e("IncomeDelete", "Network failure: ${t.message}", t)
+                            Toast.makeText(this@IncomeActivity, "Failed to delete income", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+
                 dialog.dismiss()
             }
-            .setNegativeButton("Cancel") { dialog, _ ->
-                // Do nothing if Cancel is pressed
-                dialog.dismiss()
-            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
             .show()
     }
-
 }

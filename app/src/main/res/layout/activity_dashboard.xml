@@ -5,7 +5,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".dashboardActivity">
+    tools:context=".DashboardActivity">
 
     <!-- MAIN CONTENT -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -25,9 +25,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:background="@color/purple_500">
-<!--                app:title=""-->
-<!--                app:popupTheme="@style/ThemeOverlay.AppCompat.Light">-->
-
 
                 <!-- Left menu icon -->
                 <ImageView
@@ -229,27 +226,20 @@
                     android:elevation="2dp" />
 
                 <!-- CHART TITLE -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Income vs Expense"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                    android:layout_marginTop="16dp"
+                    android:text="Income vs Expense"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <!-- CHART (LineChart) -->
                 <com.example.expensetracker.SimpleLineChartView
                     android:id="@+id/lineChart"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp" />
-
+                    android:layout_height="200dp"
+                    android:layout_marginTop="8dp" />
 
                 <!-- RECENT TRANSACTIONS HEADER -->
                 <TextView

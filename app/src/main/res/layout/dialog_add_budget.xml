@@ -7,6 +7,7 @@
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/tvDialogTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Add Budget"
@@ -14,7 +15,7 @@
         android:textStyle="bold"
         android:layout_marginBottom="8dp"/>
 
-    <!-- Month -->
+    <!-- Month (Spinner for Add, TextView for Edit) -->
     <Spinner
         android:id="@+id/spinnerMonth"
         android:layout_width="match_parent"
@@ -22,13 +23,29 @@
         android:spinnerMode="dropdown"
         android:layout_marginBottom="8dp"/>
 
-    <!-- Year -->
+    <TextView
+        android:id="@+id/tvMonthEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"/>
+
+    <!-- Year (Spinner for Add, TextView for Edit) -->
     <Spinner
         android:id="@+id/spinnerYearDialog"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:spinnerMode="dropdown"
         android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvYearEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"/>
 
     <!-- Amount -->
     <EditText

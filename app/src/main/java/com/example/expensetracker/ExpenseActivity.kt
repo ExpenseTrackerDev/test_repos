@@ -6,15 +6,26 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
+import android.view.View
 import java.util.*
+
+data class Expense(
+    val id: String?,
+    var category: String,
+    var amount: Double,
+    var date: String,
+    var description: String
+)
 
 class ExpenseActivity : AppCompatActivity() {
 
@@ -27,17 +38,24 @@ class ExpenseActivity : AppCompatActivity() {
     private lateinit var spinnerYear: Spinner
     private lateinit var etSearchCategory: EditText
     private lateinit var etFromDate: EditText
-    private lateinit var etToDate: EditText
+
+    private lateinit var userId: String
+
+    private fun formatDate(rawDate: String): String {
+        return try {
+            rawDate.substring(0, 10)   // "2025-11-21"
+        } catch (e: Exception) {
+            rawDate                     // fallback
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_expense)
 
-        val btnBack = findViewById<ImageView>(R.id.back_btn)
-        btnBack.setOnClickListener {
-            startActivity(Intent(this, dashboardActivity::class.java))
-            finish()
-        }
+        val prefs = getSharedPreferences("userPrefs", MODE_PRIVATE)
+        userId = prefs.getString("userId", "") ?: ""
 
         recyclerExpense = findViewById(R.id.recyclerExpense)
         recyclerExpense.layoutManager = LinearLayoutManager(this)
@@ -48,62 +66,111 @@ class ExpenseActivity : AppCompatActivity() {
         spinnerYear = findViewById(R.id.spinnerYear)
         etSearchCategory = findViewById(R.id.etSearchCategory)
         etFromDate = findViewById(R.id.etFromDate)
-//        etToDate = findViewById(R.id.etToDate)
-        val btnClearFilter = findViewById<Button>(R.id.btnClearFilter)
-        btnClearFilter.setOnClickListener {
-            etFromDate.text.clear()
-            etSearchCategory.text.clear()
 
-            // Reload the full list for the current month
-            filteredList.clear()
-
-            val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val today = Calendar.getInstance()
-
-            for (expense in expenseList) {
-                val date = try { format.parse(expense.date.trim()) } catch (e: Exception) { null } ?: continue
-                val cal = Calendar.getInstance()
-                cal.time = date
-
-                // Only include incomes from current month and year
-                if (cal.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                    cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
-                    filteredList.add(expense)
-                }
-            }
-
-            expenseAdapter.notifyDataSetChanged()           // Reload incomes for current month
+        findViewById<ImageView>(R.id.back_btn).setOnClickListener {
+            startActivity(Intent(this, DashboardActivity::class.java))
+            finish()
         }
 
+        findViewById<Button>(R.id.btnClearFilter).setOnClickListener {
+            etFromDate.text.clear()
+            etSearchCategory.text.clear()
+            spinnerMonth.setSelection(Calendar.getInstance().get(Calendar.MONTH))
+            spinnerYear.setSelection(
+                (2023..Calendar.getInstance().get(Calendar.YEAR)).indexOf(Calendar.getInstance().get(Calendar.YEAR))
+            )
+            filterExpenses()
+        }
 
         findViewById<FloatingActionButton>(R.id.btnAddExpense).setOnClickListener {
             showAddExpenseDialog()
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
-        // Initialize spinners and filters
         setupMonthYearSpinners()
         setupCategorySearch()
-        setupDatePickers()
-
-        // Load sample data
-        loadSampleExpenses()
+        setupDatePicker()
     }
 
-    private fun loadSampleExpenses() {
+    override fun onResume() {
+        super.onResume()
+        loadExpensesFromBackend()
+    }
+
+    private fun toggleActionButtons() {
+        val selectedMonth = spinnerMonth.selectedItem.toString().toInt()
+        val selectedYear = spinnerYear.selectedItem.toString().toInt()
+
         val calendar = Calendar.getInstance()
-        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        expenseList.add(Expense("Food", 500.0, format.format(calendar.time), "Lunch at office"))
-        expenseList.add(Expense("Transport", 120.0, format.format(calendar.time), "Taxi fare"))
+        val currentMonth = calendar.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
+        val currentYear = calendar.get(Calendar.YEAR)
 
-        // Initially show current month expenses
-        filterExpenses()
+        val isCurrentMonth = (selectedMonth == currentMonth && selectedYear == currentYear)
+
+        // Floating Add Button
+        findViewById<FloatingActionButton>(R.id.btnAddExpense).visibility =
+            if (isCurrentMonth) View.VISIBLE else View.GONE
+
+        // RecyclerView Buttons: hide/show edit & delete
+        expenseAdapter.showButtons = isCurrentMonth
+        expenseAdapter.notifyDataSetChanged()
     }
+
+    private fun loadExpensesFromBackend() {
+        RetrofitClient.instance.getExpenses(userId)
+            .enqueue(object : Callback<List<ExpenseResponse>> {
+                override fun onResponse(
+                    call: Call<List<ExpenseResponse>>,
+                    response: Response<List<ExpenseResponse>>
+                ) {
+                    if (response.isSuccessful && response.body() != null) {
+                        expenseList.clear()
+                        expenseList.addAll(response.body()!!.map { exp ->
+                            Expense(
+                                id = exp.id,  // already mapped from _id
+                                category = exp.category,
+                                amount = exp.amount,
+                                date = exp.date.substringBefore("T"), // format to yyyy-MM-dd
+                                description = exp.description
+                            )
+                        })
+                        filterExpenses()
+                    } else {
+                        Log.e("ExpenseActivity", "API Error: ${response.code()} ${response.errorBody()?.string()}")
+                        Toast.makeText(this@ExpenseActivity, "Failed to load expenses", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<List<ExpenseResponse>>, t: Throwable) {
+                    Log.e("ExpenseActivity", "API Failure", t)
+                    Toast.makeText(this@ExpenseActivity, "Failed to load expenses", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+
+
+//    private fun setupMonthYearSpinners() {
+//        val months = (1..12).map { it.toString() }
+//        val years = (2023..Calendar.getInstance().get(Calendar.YEAR)).map { it.toString() }
+//
+//        spinnerMonth.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, months)
+//        spinnerYear.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, years)
+//
+//        val cal = Calendar.getInstance()
+//        spinnerMonth.setSelection(cal.get(Calendar.MONTH))
+//        spinnerYear.setSelection(years.indexOf(cal.get(Calendar.YEAR).toString()))
+//
+//        val listener = object : AdapterView.OnItemSelectedListener {
+//            override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+//                filterExpenses()
+//            }
+//            override fun onNothingSelected(parent: AdapterView<*>?) {}
+//        }
+//
+//        spinnerMonth.onItemSelectedListener = listener
+//        spinnerYear.onItemSelectedListener = listener
+//    }
 
     private fun setupMonthYearSpinners() {
         val months = (1..12).map { it.toString() }
@@ -119,12 +186,15 @@ class ExpenseActivity : AppCompatActivity() {
         val listener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 filterExpenses()
+                toggleActionButtons()
             }
+
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
         spinnerMonth.onItemSelectedListener = listener
         spinnerYear.onItemSelectedListener = listener
     }
+
 
     private fun setupCategorySearch() {
         etSearchCategory.addTextChangedListener(object : TextWatcher {
@@ -134,94 +204,49 @@ class ExpenseActivity : AppCompatActivity() {
         })
     }
 
-    private fun setupDatePickers() {
+    private fun setupDatePicker() {
         val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-
-        val listener = { editText: EditText ->
+        etFromDate.setOnClickListener {
             val calendar = Calendar.getInstance()
-            val datePicker = DatePickerDialog(this,
+            DatePickerDialog(this,
                 { _, year, month, dayOfMonth ->
                     val c = Calendar.getInstance()
                     c.set(year, month, dayOfMonth)
-                    editText.setText(format.format(c.time))
+                    etFromDate.setText(format.format(c.time))
                     filterExpenses()
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
-            )
-            datePicker.show()
+            ).show()
         }
-
-        etFromDate.setOnClickListener { listener(etFromDate) }
-//        etToDate.setOnClickListener { listener(etToDate) }
     }
-
-//    private fun filterExpenses() {
-//        val selectedMonth = spinnerMonth.selectedItem.toString().toInt()
-//        val selectedYear = spinnerYear.selectedItem.toString().toInt()
-//        val categoryQuery = etSearchCategory.text.toString().lowercase()
-//        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-//
-//        filteredList.clear()
-//        for (expense in expenseList) {
-//            val date = format.parse(expense.date)
-//            val cal = Calendar.getInstance()
-//            cal.time = date!!
-//
-//            if (cal.get(Calendar.MONTH) + 1 == selectedMonth &&
-//                cal.get(Calendar.YEAR) == selectedYear &&
-//                expense.category.lowercase().contains(categoryQuery)) {
-//
-//                // Filter by date range if specified
-//                val fromDate = if (etFromDate.text.isNotEmpty()) format.parse(etFromDate.text.toString()) else null
-//                val toDate = if (etToDate.text.isNotEmpty()) format.parse(etToDate.text.toString()) else null
-//
-//                if ((fromDate == null || !date.before(fromDate)) &&
-//                    (toDate == null || !date.after(toDate))) {
-//                    filteredList.add(expense)
-//                }
-//            }
-//        }
-//        expenseAdapter.notifyDataSetChanged()
-//    }
 
     private fun filterExpenses() {
         val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val fromDate = if (etFromDate.text.isNotEmpty()) {
-            try {
-                format.parse(etFromDate.text.toString().trim())
-            } catch (e: Exception) {
-                null
-            }
+            try { format.parse(etFromDate.text.toString().trim()) } catch (e: Exception) { null }
         } else null
 
         val categoryQuery = etSearchCategory.text.toString().trim().lowercase()
+        val selectedMonth = spinnerMonth.selectedItem.toString().toInt()
+        val selectedYear = spinnerYear.selectedItem.toString().toInt()
 
         filteredList.clear()
-
         for (expense in expenseList) {
-            val incomeDate = try {
-                format.parse(expense.date.trim())
-            } catch (e: Exception) {
-                null
-            } ?: continue
-            val incomeCategory = expense.category.trim().lowercase()
+            val expenseDate = try { format.parse(expense.date.trim()) } catch (e: Exception) { null } ?: continue
+            val matchesCategory = categoryQuery.isEmpty() || expense.category.lowercase().contains(categoryQuery)
+            val matchesDate = fromDate == null || expenseDate.time == fromDate.time
+            val cal = Calendar.getInstance()
+            cal.time = expenseDate
+            val matchesMonthYear = cal.get(Calendar.MONTH) + 1 == selectedMonth && cal.get(Calendar.YEAR) == selectedYear
 
-            // Check if it matches category filter
-            val matchesCategory = categoryQuery.isEmpty() || incomeCategory.contains(categoryQuery)
-
-            // Check if it matches exact From Date
-            val matchesDate = fromDate == null || incomeDate == fromDate
-
-            if (matchesCategory && matchesDate) {
+            if (matchesCategory && matchesDate && matchesMonthYear) {
                 filteredList.add(expense)
             }
         }
-
         expenseAdapter.notifyDataSetChanged()
     }
-
 
     private fun showAddExpenseDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_expense, null)
@@ -230,54 +255,143 @@ class ExpenseActivity : AppCompatActivity() {
         val etDate = dialogView.findViewById<EditText>(R.id.etExpenseDate)
         val etDescription = dialogView.findViewById<EditText>(R.id.etExpenseDescription)
 
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
         etDate.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            val datePicker = DatePickerDialog(this,
+            val cal = Calendar.getInstance()
+            DatePickerDialog(this,
                 { _, year, month, dayOfMonth ->
                     val c = Calendar.getInstance()
                     c.set(year, month, dayOfMonth)
-                    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                     etDate.setText(format.format(c.time))
                 },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            )
-            datePicker.show()
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+            ).show()
         }
 
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
 
         dialogView.findViewById<Button>(R.id.btnSaveExpense).setOnClickListener {
-            val amount = etAmount.text.toString().toDoubleOrNull() ?: 0.0
-            val category = etCategory.text.toString()
-            val date = etDate.text.toString()
-            val description = etDescription.text.toString()
+            val amount = etAmount.text.toString().toDoubleOrNull()
+            val category = etCategory.text.toString().trim()
+            val date = etDate.text.toString().trim()
+            val description = etDescription.text.toString().trim()
 
-            expenseList.add(Expense(category, amount, date, description))
-            filterExpenses()
-            dialog.dismiss()
+            if (amount == null || amount <= 0 || category.isEmpty() || date.isEmpty()) {
+                Toast.makeText(this, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            RetrofitClient.instance.addExpense(userId, ExpenseRequest(category, amount, date, description))
+                .enqueue(object : Callback<ExpenseResponse> {
+                    override fun onResponse(call: Call<ExpenseResponse>, response: Response<ExpenseResponse>) {
+                        if (response.isSuccessful && response.body() != null) {
+                            Toast.makeText(this@ExpenseActivity, "Expense added", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                            loadExpensesFromBackend()
+                        } else {
+                            Log.e("ExpenseActivity", "Add Expense Error: ${response.code()} ${response.errorBody()?.string()}")
+                            Toast.makeText(this@ExpenseActivity, "Failed to add expense", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ExpenseResponse>, t: Throwable) {
+                        Log.e("ExpenseActivity", "Add Expense Failure", t)
+                        Toast.makeText(this@ExpenseActivity, "Failed to add expense", Toast.LENGTH_SHORT).show()
+                    }
+                })
         }
 
         dialog.show()
     }
 
+//    private fun editExpense(position: Int) {
+//        val expense = filteredList[position]
+//        val dialogView = layoutInflater.inflate(R.layout.dialog_add_expense, null)
+//        val etAmount = dialogView.findViewById<EditText>(R.id.etExpenseAmount)
+//        val etCategory = dialogView.findViewById<EditText>(R.id.etExpenseCategory)
+//        val etDate = dialogView.findViewById<EditText>(R.id.etExpenseDate)
+//        val etDescription = dialogView.findViewById<EditText>(R.id.etExpenseDescription)
+//
+//        etAmount.setText(expense.amount.toString())
+//        etCategory.setText(expense.category)
+//        etDate.setText(expense.date)
+//        etDescription.setText(expense.description)
+//
+//        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+//        etDate.setOnClickListener {
+//            val cal = Calendar.getInstance()
+//            DatePickerDialog(this,
+//                { _, year, month, dayOfMonth ->
+//                    val c = Calendar.getInstance()
+//                    c.set(year, month, dayOfMonth)
+//                    etDate.setText(format.format(c.time))
+//                },
+//                cal.get(Calendar.YEAR),
+//                cal.get(Calendar.MONTH),
+//                cal.get(Calendar.DAY_OF_MONTH)
+//            ).show()
+//        }
+//
+//        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+//
+//        dialogView.findViewById<Button>(R.id.btnSaveExpense).setOnClickListener {
+//            val amount = etAmount.text.toString().toDoubleOrNull()
+//            val category = etCategory.text.toString().trim()
+//            val date = etDate.text.toString().trim()
+//            val description = etDescription.text.toString().trim()
+//
+//            if (amount == null || amount <= 0 || category.isEmpty() || date.isEmpty()) {
+//                Toast.makeText(this, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
+//                return@setOnClickListener
+//            }
+//
+//            RetrofitClient.instance.editExpense(userId, expense.id, ExpenseRequest(category, amount, date, description))
+//                .enqueue(object : Callback<ExpenseResponse> {
+//                    override fun onResponse(call: Call<ExpenseResponse>, response: Response<ExpenseResponse>) {
+//                        if (response.isSuccessful && response.body() != null) {
+//                            Toast.makeText(this@ExpenseActivity, "Expense updated", Toast.LENGTH_SHORT).show()
+//                            dialog.dismiss()
+//                            loadExpensesFromBackend()
+//                        } else {
+//                            Log.e("ExpenseActivity", "Edit Expense Error: ${response.code()} ${response.errorBody()?.string()}")
+//                            Toast.makeText(this@ExpenseActivity, "Failed to update expense", Toast.LENGTH_SHORT).show()
+//                        }
+//                    }
+//
+//                    override fun onFailure(call: Call<ExpenseResponse>, t: Throwable) {
+//                        Log.e("ExpenseActivity", "Edit Expense Failure", t)
+//                        Toast.makeText(this@ExpenseActivity, "Failed to update expense", Toast.LENGTH_SHORT).show()
+//                    }
+//                })
+//        }
+//
+//        dialog.show()
+//    }
+
+
     private fun editExpense(position: Int) {
         val expense = filteredList[position]
+
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_expense, null)
         val etAmount = dialogView.findViewById<EditText>(R.id.etExpenseAmount)
         val etCategory = dialogView.findViewById<EditText>(R.id.etExpenseCategory)
         val etDate = dialogView.findViewById<EditText>(R.id.etExpenseDate)
         val etDescription = dialogView.findViewById<EditText>(R.id.etExpenseDescription)
 
+        // set old values
         etAmount.setText(expense.amount.toString())
         etCategory.setText(expense.category)
-        etDate.setText(expense.date)
+//        etDate.setText(expense.date)
+        etDate.setText(expense.date.substringBefore("T"))
         etDescription.setText(expense.description)
 
         etDate.setOnClickListener {
             val calendar = Calendar.getInstance()
-            val datePicker = DatePickerDialog(this,
+            val dialog = DatePickerDialog(
+                this,
                 { _, year, month, dayOfMonth ->
                     val c = Calendar.getInstance()
                     c.set(year, month, dayOfMonth)
@@ -288,37 +402,170 @@ class ExpenseActivity : AppCompatActivity() {
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
             )
-            datePicker.show()
+            dialog.show()
         }
 
-        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        val alertDialog = AlertDialog.Builder(this).setView(dialogView).create()
+
         dialogView.findViewById<Button>(R.id.btnSaveExpense).setOnClickListener {
-            expense.amount = etAmount.text.toString().toDoubleOrNull() ?: 0.0
-            expense.category = etCategory.text.toString()
-            expense.date = etDate.text.toString()
-            expense.description = etDescription.text.toString()
-            filterExpenses()
-            dialog.dismiss()
+            val amount = etAmount.text.toString().toDoubleOrNull()
+            val category = etCategory.text.toString().trim()
+            val date = etDate.text.toString().trim()
+            val description = etDescription.text.toString().trim()
+
+            if (amount == null || amount <= 0 || category.isBlank() || date.isBlank()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val expenseId = expense.id ?: run {
+                Toast.makeText(this, "Expense ID missing", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            RetrofitClient.instance.editExpense(
+                userId,
+                expenseId,
+                ExpenseRequest(category, amount, date, description)
+            ).enqueue(object : Callback<ExpenseResponse> {
+                override fun onResponse(
+                    call: Call<ExpenseResponse>,
+                    response: Response<ExpenseResponse>
+                ) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val updated = response.body()!!
+
+                        // update local item
+                        expense.category = updated.category
+                        expense.amount = updated.amount
+                        expense.date = updated.date
+                        expense.description = updated.description
+
+                        filterExpenses()  // refresh list
+                        alertDialog.dismiss()
+
+                        Toast.makeText(
+                            this@ExpenseActivity,
+                            "Expense updated",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Log.e(
+                            "ExpenseEdit",
+                            "Error code=${response.code()}, err=${response.errorBody()?.string()}"
+                        )
+                        Toast.makeText(
+                            this@ExpenseActivity,
+                            "Unable to update expense",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ExpenseResponse>, t: Throwable) {
+                    Log.e("ExpenseEdit", "Network failure: ${t.message}", t)
+                    Toast.makeText(
+                        this@ExpenseActivity,
+                        "Failed to update expense",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
         }
-        dialog.show()
+
+        alertDialog.show()
     }
+
+
+
+
+//    private fun deleteExpense(position: Int) {
+//        val expense = filteredList[position]
+//        AlertDialog.Builder(this)
+//            .setTitle("Delete Expense")
+//            .setMessage("Are you sure you want to delete this expense?")
+//            .setPositiveButton("OK") { dialog, _ ->
+//                RetrofitClient.instance.deleteExpense(userId, expense.id)
+//                    .enqueue(object : Callback<ApiResponse> {
+//                        override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
+//                            if (response.isSuccessful) {
+//                                Toast.makeText(this@ExpenseActivity, "Expense deleted", Toast.LENGTH_SHORT).show()
+//                                loadExpensesFromBackend()
+//                            } else {
+//                                Log.e("ExpenseActivity", "Delete Expense Error: ${response.code()} ${response.errorBody()?.string()}")
+//                            }
+//                        }
+//
+//                        override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+//                            Log.e("ExpenseActivity", "Delete Expense Failure", t)
+//                            Toast.makeText(this@ExpenseActivity, "Failed to delete expense", Toast.LENGTH_SHORT).show()
+//                        }
+//                    })
+//                dialog.dismiss()
+//            }
+//            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+//            .show()
+//    }
 
     private fun deleteExpense(position: Int) {
         val expense = filteredList[position]
 
-        // Create confirmation dialog
         AlertDialog.Builder(this)
             .setTitle("Delete Expense")
             .setMessage("Are you sure you want to delete this expense?")
             .setPositiveButton("OK") { dialog, _ ->
-                // Delete expense if OK is pressed
-                expenseList.remove(expense)
-                filterExpenses()
+
+                // Expense ID (returned from backend)
+                val expenseId = expense.id
+                if (expenseId == null) {
+                    Toast.makeText(this, "Expense ID missing", Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                    return@setPositiveButton
+                }
+
+                RetrofitClient.instance.deleteExpense(userId, expenseId)
+                    .enqueue(object : Callback<ApiResponse> {
+                        override fun onResponse(
+                            call: Call<ApiResponse>,
+                            response: Response<ApiResponse>
+                        ) {
+                            if (response.isSuccessful) {
+                                Toast.makeText(
+                                    this@ExpenseActivity,
+                                    "Expense deleted",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+
+                                // Reload full list to update UI
+                                loadExpensesFromBackend()
+                            } else {
+                                Log.e(
+                                    "ExpenseDelete",
+                                    "Delete failed code=${response.code()}, err=${response.errorBody()?.string()}"
+                                )
+                                Toast.makeText(
+                                    this@ExpenseActivity,
+                                    "Unable to delete expense",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                            Log.e("ExpenseDelete", "Network failure: ${t.message}", t)
+                            Toast.makeText(
+                                this@ExpenseActivity,
+                                "Failed to delete expense",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    })
+
                 dialog.dismiss()
             }
-            .setNegativeButton("Cancel") { dialog, _ ->
-                dialog.dismiss()
-            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
             .show()
     }
+
+
 }

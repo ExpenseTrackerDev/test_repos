@@ -1,35 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
-    android:padding="12dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="?android:attr/selectableItemBackground">
 
+    <!-- CATEGORY & AMOUNT ROW -->
     <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3">
 
         <TextView
-            android:id="@+id/tvTransTitle"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvCategory"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Salary" />
+            android:layout_weight="2"
+            android:text="Category"
+            android:textSize="16sp"
+            android:textColor="#000"
+            android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvTransDate"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvAmount"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="2025-10-01"
-            android:textSize="12sp"
-            android:textColor="#888" />
+            android:layout_weight="1"
+            android:text="$0.00"
+            android:textSize="16sp"
+            android:textColor="#000"
+            android:gravity="end"
+            android:textStyle="bold" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvTransAmount"
-        android:layout_width="wrap_content"
+    <!-- DATE & TYPE ROW -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="+$3000"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="01-01-2025"
+            android:textSize="14sp"
+            android:textColor="#555" />
+
+        <TextView
+            android:id="@+id/tvType"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Income"
+            android:textSize="14sp"
+            android:textColor="#555"
+            android:gravity="end" />
+    </LinearLayout>
+
+    <!-- SEPARATOR LINE -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="#DDD" />
 </LinearLayout>

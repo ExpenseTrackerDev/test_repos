@@ -98,13 +98,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <Button
-                    android:id="@+id/btnEditBudget"
-                    android:layout_width="80dp"
-                    android:layout_height="48dp"
-                    android:background="@color/purple_500"
-                    android:text="Edit"
-                    android:textColor="#FFFFFF" />
             </LinearLayout>
 
             <!-- Add Budget Button -->
