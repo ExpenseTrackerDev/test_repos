@@ -27,36 +27,6 @@ class loginActivity : AppCompatActivity() {
         btnForget = findViewById(R.id.forgetpass)
         btnCreate = findViewById(R.id.signup)
 
-//        btnLogin.setOnClickListener {
-//            val identifier = etEmail.text.toString().trim()
-//            val pass = etPassword.text.toString().trim()
-//
-//            if (identifier.isEmpty() || pass.isEmpty()) {
-//                Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
-//                return@setOnClickListener
-//            }
-//
-//            val request = LoginRequest(identifier, pass)
-//
-//            RetrofitClient.instance.loginUser(request).enqueue(object : retrofit2.Callback<LoginResponse> {
-//                override fun onResponse(
-//                    call: retrofit2.Call<ApiResponse>,
-//                    response: retrofit2.Response<ApiResponse>
-//                ) {
-//                    if (response.isSuccessful) {
-//                        Toast.makeText(this@loginActivity, "Login Successful", Toast.LENGTH_SHORT).show()
-//                        startActivity(Intent(this@loginActivity, DashboardActivity::class.java))
-//                        finish()
-//                    } else {
-//                        Toast.makeText(this@loginActivity, "Invalid Email/Username or Password", Toast.LENGTH_SHORT).show()
-//                    }
-//                }
-//
-//                override fun onFailure(call: retrofit2.Call<ApiResponse>, t: Throwable) {
-//                    Toast.makeText(this@loginActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
-//                }
-//            })
-//        }
 
         btnLogin.setOnClickListener {
             val identifier = etEmail.text.toString().trim()

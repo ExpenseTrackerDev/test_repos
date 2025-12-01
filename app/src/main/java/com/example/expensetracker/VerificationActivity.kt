@@ -51,20 +51,7 @@ class VerificationActivity : AppCompatActivity() {
             }
         }
 
-        // Verify button
-//        btnVerify.setOnClickListener {
-//            val OTP = otp.text.toString().trim()
-//
-//            if (OTP.isEmpty()) {
-//                Toast.makeText(this, "Please fill the field", Toast.LENGTH_SHORT).show()
-//                return@setOnClickListener
-//            }
-//
-//            // After verifying OTP, go to login screen
-//            val intent = Intent(this, loginActivity::class.java)
-//            startActivity(intent)
-//            finish()
-//        }
+
         btnVerify.setOnClickListener {
             val OTP = otp.text.toString().trim()
             val email = intent.getStringExtra("email") ?: return@setOnClickListener

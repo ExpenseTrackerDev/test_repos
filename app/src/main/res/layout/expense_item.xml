@@ -41,8 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Description: Lunch at office"
-            android:textSize="14sp"
-            android:textColor="#555" />
+            android:textSize="14sp" />
 
         <!-- Edit and Delete Buttons -->
         <LinearLayout

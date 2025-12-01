@@ -44,33 +44,7 @@ class CreateActivity : AppCompatActivity() {
 
 
 
-//        createAccountBtn.setOnClickListener {
-//            val user = username.text.toString().trim()
-//            val mail = email.text.toString().trim()
-//            val phn = phone.text.toString().trim()
-//            val pass = password.text.toString()
-//            val confirmPass = confirmPassword.text.toString()
-//
-//            if (user.isEmpty() || mail.isEmpty() || phn.isEmpty() || pass.isEmpty() || confirmPass.isEmpty()) {
-//                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
-//                return@setOnClickListener
-//            }
-//
-//            if (pass != confirmPass) {
-//                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
-//                return@setOnClickListener
-//            }
-//
-//            // If validation passes, go to verification page
-//            val intent = Intent(this, VerificationActivity::class.java)
-//            intent.putExtra("username", user)
-//            intent.putExtra("email", mail)
-//            intent.putExtra("phone", phn)
-//            intent.putExtra("password", pass)
-//            intent.putExtra("source", "create")
-//            startActivity(intent)
-//            finish()
-//        }
+
         createAccountBtn.setOnClickListener {
             val user = username.text.toString().trim()
             val mail = email.text.toString().trim()

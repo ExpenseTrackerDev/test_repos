@@ -48,6 +48,12 @@ data class LoginResponse(
 )
 
 
+data class ProfileResponse(
+    val username: String?,
+    val email: String?,
+    val phone: String?
+)
+
 
 //
 //data class DashboardResponse(
@@ -204,4 +210,13 @@ interface ApiService {
         @Query("year") year: Int
     ): Call<ResponseBody>
 
+
+    @GET("api/auth/profile/{userId}")
+    fun getProfile(@Path("userId") userId: String): Call<ProfileResponse>
+
+    @PUT("api/auth/profile/{userId}")
+    fun updateProfile(
+        @Path("userId") userId: String,
+        @Body updates: Map<String, String>
+    ): Call<ApiResponse>
 }
