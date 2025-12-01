@@ -82,29 +82,40 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:padding="8dp"
-                    android:background="#EFEFEF"
-                    android:elevation="2dp">
-
-                    <TextView
-                        android:id="@+id/tvSelectedMonth"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="November 2025"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="@color/purple_500"
-                        android:paddingStart="8dp" />
+                    android:elevation="5dp">
 
                     <ImageView
                         android:id="@+id/btnSelectMonth"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
+                        android:padding="6dp"
                         android:src="@drawable/ic_calendar"
-                        app:tint="@color/purple_500"
-                        android:padding="6dp" />
+                        app:tint="@color/colorSecondary" />
+
+                    <TextView
+                        android:id="@+id/tvSelectedMonth"
+                        android:layout_width="185dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingStart="8dp"
+                        android:text="November 2025"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+
                 </LinearLayout>
 
+                <!-- ADVICE MESSAGE -->
+                <TextView
+                    android:id="@+id/tvAdvice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:padding="10dp"
+                    android:text="Great savings last month! Keep it up 💰"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorSecondary"
+                    android:elevation="5dp" />
                 <!-- CARDS ROW -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -118,9 +129,12 @@
                         android:layout_width="0dp"
                         android:layout_height="110dp"
                         android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginRight="2dp"
+                        android:layout_marginLeft="2dp"
                         app:cardCornerRadius="12dp"
-                        app:cardElevation="3dp">
+                        app:cardElevation="5dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -132,7 +146,6 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Balance"
-                                android:textColor="#666"
                                 android:textSize="14sp" />
 
                             <TextView
@@ -141,7 +154,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
                                 android:text="$0.00"
-                                android:textSize="18sp"
+                                android:textSize="16sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
@@ -151,9 +164,12 @@
                         android:layout_width="0dp"
                         android:layout_height="110dp"
                         android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginRight="2dp"
+                        android:layout_marginLeft="2dp"
                         app:cardCornerRadius="12dp"
-                        app:cardElevation="3dp">
+                        app:cardElevation="5dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -165,15 +181,14 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Income"
-                                android:textSize="14sp"
-                                android:textColor="#666" />
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:id="@+id/tvIncome"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="$0.00"
-                                android:textSize="18sp"
+                                android:textSize="16sp"
                                 android:textStyle="bold"
                                 android:layout_marginTop="6dp" />
                         </LinearLayout>
@@ -185,7 +200,11 @@
                         android:layout_height="110dp"
                         android:layout_weight="1"
                         app:cardCornerRadius="12dp"
-                        app:cardElevation="3dp">
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginRight="2dp"
+                        android:layout_marginLeft="2dp"
+                        app:cardElevation="5dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -197,33 +216,20 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Expense"
-                                android:textSize="14sp"
-                                android:textColor="#666" />
+                                android:textSize="14sp"/>
 
                             <TextView
                                 android:id="@+id/tvExpense"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="$0.00"
-                                android:textSize="18sp"
+                                android:textSize="16sp"
                                 android:textStyle="bold"
                                 android:layout_marginTop="6dp" />
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
                 </LinearLayout>
 
-                <!-- ADVICE MESSAGE -->
-                <TextView
-                    android:id="@+id/tvAdvice"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:padding="10dp"
-                    android:background="#FFF8E1"
-                    android:text="Great savings last month! Keep it up 💰"
-                    android:textColor="#333"
-                    android:textSize="15sp"
-                    android:elevation="2dp" />
 
                 <!-- CHART TITLE -->
                 <TextView
@@ -273,7 +279,6 @@
             android:layout_gravity="bottom"
             android:orientation="horizontal"
             android:weightSum="3"
-            android:background="@color/purple_500"
             android:elevation="8dp">
 
             <Button
@@ -283,7 +288,8 @@
                 android:layout_height="match_parent"
                 android:text="Income"
                 android:textSize="16sp"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/colorOnPrimary"
+                android:background="@color/colorPrimary"/>
 
             <Button
                 android:id="@+id/btnBottomExpense"
@@ -292,7 +298,8 @@
                 android:layout_height="match_parent"
                 android:text="Expense"
                 android:textSize="16sp"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/colorOnPrimary"
+                android:background="@color/colorPrimary"/>
 
             <Button
                 android:id="@+id/btnBottomBudget"
@@ -301,7 +308,8 @@
                 android:layout_height="match_parent"
                 android:text="Budget"
                 android:textSize="16sp"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/colorOnPrimary"
+                android:background="@color/colorPrimary"/>
         </LinearLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

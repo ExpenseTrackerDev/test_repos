@@ -13,6 +13,13 @@ import androidx.recyclerview.widget.RecyclerView
 //    var date: String,
 //    var description: String
 //)
+data class Expense(
+    val id: String?,
+    var category: String,
+    var amount: Double,
+    var date: String,
+    var description: String
+)
 
 class ExpenseAdapter(
     private val expenseList: MutableList<Expense>,

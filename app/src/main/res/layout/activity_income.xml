@@ -7,15 +7,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F8F9FA"
-    tools:context=".IncomeActivity">
+    tools:context=".IncomeActivity"
+    android:fitsSystemWindows="true">
 
     <!-- Toolbar -->
     <RelativeLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@color/purple_500"
+        android:background="@color/colorPrimary"
         android:paddingHorizontal="12dp">
 
         <ImageView
@@ -70,8 +70,8 @@
             android:layout_height="wrap_content"
             android:text="Clear"
             android:layout_marginStart="8dp"
-            android:backgroundTint="@color/purple_500"
-            android:textColor="@android:color/white"/>
+            android:backgroundTint="@color/colorPrimary"
+            android:textColor="@color/colorOnPrimary"/>
     </LinearLayout>
 
     <!-- Search by category -->
@@ -98,15 +98,7 @@
             android:focusable="false"
             android:clickable="true"/>
 
-<!--        <EditText-->
-<!--            android:id="@+id/etToDate"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-<!--            android:layout_marginStart="8dp"-->
-<!--            android:hint="To Date"-->
-<!--            android:focusable="false"-->
-<!--            android:clickable="true"/>-->
+
     </LinearLayout>
 
     <!-- RecyclerView -->
@@ -127,5 +119,6 @@
         android:layout_margin="24dp"
         android:src="@drawable/ic_add"
         android:contentDescription="Add Income"
-        app:backgroundTint="@color/purple_200"/>
+        app:tint="@color/colorOnPrimary"
+        app:backgroundTint="@color/colorPrimary"/>
 </LinearLayout>

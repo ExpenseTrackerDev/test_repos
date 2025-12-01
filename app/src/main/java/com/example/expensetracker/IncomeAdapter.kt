@@ -7,6 +7,13 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
+data class Income(
+    val id: String?,
+    var category: String,
+    var amount: Double,
+    var date: String,
+    var description: String
+)
 class IncomeAdapter(
     private val incomeList: MutableList<Income>,
     private val onEdit: (Int) -> Unit,

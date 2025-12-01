@@ -19,13 +19,7 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
 
-data class Income(
-    val id: String?,
-    var category: String,
-    var amount: Double,
-    var date: String,
-    var description: String
-)
+
 
 class IncomeActivity : AppCompatActivity() {
 

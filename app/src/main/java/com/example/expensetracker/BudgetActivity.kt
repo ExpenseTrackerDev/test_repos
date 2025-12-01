@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
+import android.window.OnBackInvokedDispatcher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -30,6 +31,7 @@ class BudgetActivity : AppCompatActivity() {
     private var allBudgets = mutableListOf<BudgetResponse>()
     private var availableYears = mutableSetOf<Int>()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_budget)
@@ -45,6 +47,7 @@ class BudgetActivity : AppCompatActivity() {
             finish()
         }
 
+
         btnAddBudget.setOnClickListener { showAddBudgetDialog() }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -55,6 +58,8 @@ class BudgetActivity : AppCompatActivity() {
 
         fetchAllBudgets()
     }
+
+
 
     /** ------------------------------------------------------------
      *  Fetch ALL budgets (not just one year) — main fix
@@ -123,7 +128,7 @@ class BudgetActivity : AppCompatActivity() {
 
         /** Current month’s budget card */
         val currentBudget = allBudgets.find { it.year == currentYear && it.month == currentMonth }
-        tvCurrentBudget.text = "$${currentBudget?.amount ?: 0}"
+        tvCurrentBudget.text = "Tk.${currentBudget?.amount ?: 0}"
 
         /** Create list */
         budgetList.removeAllViews()
@@ -149,8 +154,8 @@ class BudgetActivity : AppCompatActivity() {
 
         tvMonth.text = "$monthName ${budget.year}"
         progressBar.progress = budget.percentUsed
-        tvUsage.text = "Used: ${budget.percentUsed}% of $${budget.amount}" +
-                if (budget.overBudget > 0) " (Over by $${budget.overBudget})" else ""
+        tvUsage.text = "Used: ${budget.percentUsed}% of Tk.${budget.amount}" +
+                if (budget.overBudget > 0) " (Over by Tk.${budget.overBudget})" else ""
 
         btnEdit.visibility = if (budget.editable) View.VISIBLE else View.GONE
         btnEdit.setOnClickListener { showEditBudgetDialog(budget) }
@@ -214,51 +219,6 @@ class BudgetActivity : AppCompatActivity() {
 
         dialog.show()
     }
-
-    /** ------------------------------------------------------------
-     *  Edit Budget Dialog (Fixed)
-     *  ------------------------------------------------------------- */
-//    private fun showEditBudgetDialog(budget: BudgetResponse) {
-//        val dialogView = layoutInflater.inflate(R.layout.dialog_add_budget, null)
-//
-//        val etAmount = dialogView.findViewById<EditText>(R.id.etAmount)
-//        val btnSave = dialogView.findViewById<Button>(R.id.btnSaveBudget)
-//        val spinnerMonth = dialogView.findViewById<Spinner>(R.id.spinnerMonth)
-//        val spinnerYear = dialogView.findViewById<Spinner>(R.id.spinnerYearDialog)
-//        val tvMonthEdit = dialogView.findViewById<TextView>(R.id.tvMonthEdit)
-//        val tvYearEdit = dialogView.findViewById<TextView>(R.id.tvYearEdit)
-//        val tvDialogTitle = dialogView.findViewById<TextView>(R.id.tvDialogTitle)
-//
-//        spinnerMonth.visibility = View.GONE
-//        spinnerYear.visibility = View.GONE
-//        tvMonthEdit.visibility = View.VISIBLE
-//        tvYearEdit.visibility = View.VISIBLE
-//
-//        tvDialogTitle.text = "Edit Budget"
-//
-//        val monthName = SimpleDateFormat("MMMM", Locale.getDefault())
-//            .format(Calendar.getInstance().apply { set(Calendar.MONTH, budget.month - 1) }.time)
-//
-//        tvMonthEdit.text = monthName
-//        tvYearEdit.text = budget.year.toString()
-//
-//        etAmount.setText(budget.amount.toString())
-//
-//        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
-//
-//        btnSave.setOnClickListener {
-//            val amount = etAmount.text.toString().toIntOrNull() ?: 0
-//            if (amount <= 0) {
-//                Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
-//                return@setOnClickListener
-//            }
-//
-//            editBudgetApi(budget.budgetId, amount)
-//            dialog.dismiss()
-//        }
-//
-//        dialog.show()
-//    }
 
     private fun showEditBudgetDialog(budget: BudgetResponse) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_budget, null)
@@ -368,5 +328,7 @@ class BudgetActivity : AppCompatActivity() {
                 }
             })
     }
+
+
 
 }

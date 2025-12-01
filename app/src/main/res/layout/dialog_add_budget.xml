@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/cardview_light_background"
     android:padding="16dp">
 
     <TextView
@@ -61,6 +60,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Save"
-        android:backgroundTint="#5B34EB"
+        android:background="@drawable/btnbg"
         android:textColor="@android:color/white"/>
 </LinearLayout>

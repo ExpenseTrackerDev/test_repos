@@ -10,52 +10,177 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class UpdateProfileActivity : AppCompatActivity() {
+
+    private lateinit var username: EditText
+    private lateinit var email: EditText
+    private lateinit var phone: EditText
+    private lateinit var btnUpdate: Button
+    private lateinit var btnEdit: Button
+    private lateinit var btnBack: ImageView
+
+    private lateinit var userId: String
+
+    private var isEditMode = false   // Track edit mode
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_update_profile)
 
-        // Now safely access all views
-        val btnBack = findViewById<ImageView>(R.id.back_btn)
-        val btnUpProfile = findViewById<Button>(R.id.verify)
-        val username = findViewById<EditText>(R.id.chooseusername)
-        val email = findViewById<EditText>(R.id.enteremail)
-        val phone = findViewById<EditText>(R.id.enterphone)
+        username = findViewById(R.id.chooseusername)
+        email = findViewById(R.id.enteremail)
+        phone = findViewById(R.id.enterphone)
+        btnUpdate = findViewById(R.id.verify)
+        btnEdit = findViewById(R.id.editBtn)
+        btnBack = findViewById(R.id.back_btn)
 
-        // Update button click
-        btnUpProfile.setOnClickListener {
-            val user = username.text.toString().trim()
-            val mail = email.text.toString().trim()
-            val phn = phone.text.toString().trim()
+        // Disable editing initially
+        toggleEditing(false)
 
-            if (user.isEmpty() || mail.isEmpty() || phn.isEmpty()) {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+        val prefs = getSharedPreferences("userPrefs", MODE_PRIVATE)
+        userId = prefs.getString("userId", "") ?: ""
 
-            // TODO: Save updated info to DB or shared preferences here
-            Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+        loadUserProfile()
 
-            // Go back to settings screen
-            val intent = Intent(this, settingsActivity::class.java)
-            startActivity(intent)
-            finish()
+        btnEdit.setOnClickListener {
+            toggleEditing(true)
         }
 
-        // Back button click
+        btnUpdate.setOnClickListener {
+            updateProfile(prefs)
+        }
+
         btnBack.setOnClickListener {
-            val intent = Intent(this, settingsActivity::class.java)
-            startActivity(intent)
-            finish()
+            handleBackPressed()
         }
 
-        // Edge-to-edge system insets handling
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
+
+    private fun handleBackPressed() {
+        if (isEditMode) {
+            // Exit edit mode instead of leaving
+            toggleEditing(false)
+            loadUserProfile()
+            Toast.makeText(this, "Edit cancelled", Toast.LENGTH_SHORT).show()
+        } else {
+            // Leave activity normally
+            startActivity(Intent(this, settingsActivity::class.java))
+            finish()
+        }
+    }
+
+    private fun loadUserProfile() {
+        RetrofitClient.instance.getProfile(userId)
+            .enqueue(object : Callback<ProfileResponse> {
+                override fun onResponse(
+                    call: Call<ProfileResponse>,
+                    response: Response<ProfileResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { user ->
+                            username.setText(user.username ?: "")
+                            email.setText(user.email ?: "")
+                            phone.setText(user.phone ?: "")
+                        }
+                    } else {
+                        Toast.makeText(
+                            this@UpdateProfileActivity,
+                            "Failed to load profile",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ProfileResponse>, t: Throwable) {
+                    Toast.makeText(
+                        this@UpdateProfileActivity,
+                        "Error: ${t.localizedMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
+    }
+
+    private fun toggleEditing(enable: Boolean) {
+        isEditMode = enable
+        username.isEnabled = enable
+        email.isEnabled = enable
+        phone.isEnabled = enable
+
+        btnUpdate.isVisible = enable
+        btnUpdate.isEnabled = enable
+
+        btnEdit.isVisible = !enable
+    }
+
+    private fun updateProfile(prefs: android.content.SharedPreferences) {
+
+        val updatedUsername = username.text.toString().trim()
+        val updatedEmail = email.text.toString().trim()
+        val updatedPhone = phone.text.toString().trim()
+
+        val updateMap = mutableMapOf<String, String>()
+
+        if (updatedUsername.isNotEmpty()) updateMap["username"] = updatedUsername
+        if (updatedEmail.isNotEmpty()) updateMap["email"] = updatedEmail
+        if (updatedPhone.isNotEmpty()) updateMap["phone"] = updatedPhone
+
+        if (updateMap.isEmpty()) {
+            Toast.makeText(this, "No changes to update", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        RetrofitClient.instance.updateProfile(userId, updateMap)
+            .enqueue(object : Callback<ApiResponse> {
+                override fun onResponse(
+                    call: Call<ApiResponse>,
+                    response: Response<ApiResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(
+                            this@UpdateProfileActivity,
+                            response.body()?.message ?: "Updated!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        // Go back to view mode
+                        toggleEditing(false)
+
+                        // Save locally
+                        prefs.edit().apply {
+                            if (updateMap.containsKey("username")) putString("username", updatedUsername)
+                            if (updateMap.containsKey("email")) putString("email", updatedEmail)
+                            if (updateMap.containsKey("phone")) putString("phone", updatedPhone)
+                            apply()
+                        }
+
+                    } else {
+                        Toast.makeText(
+                            this@UpdateProfileActivity,
+                            "Update failed",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                    Toast.makeText(
+                        this@UpdateProfileActivity,
+                        "Error: ${t.localizedMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
     }
 }
